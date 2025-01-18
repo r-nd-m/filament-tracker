@@ -98,3 +98,56 @@ def edit_print(print_id):
 
     db.session.commit()
     return redirect(url_for('index'))
+
+@app.route('/duplicate_roll/<int:roll_id>', methods=['POST'])
+def duplicate_roll(roll_id):
+    roll = FilamentRoll.query.get_or_404(roll_id)
+
+    # Capture new values from the form
+    new_maker = request.form['maker']
+    new_color = request.form['color']
+    new_total_weight = float(request.form['total_weight'])
+    new_remaining_weight = float(request.form['remaining_weight'])
+    new_in_use = 'in_use' in request.form  # Checkbox handling
+
+    # Create a new roll with modified values
+    new_roll = FilamentRoll(
+        maker=new_maker,
+        color=new_color,
+        total_weight=new_total_weight,
+        remaining_weight=new_remaining_weight,
+        in_use=new_in_use
+    )
+    db.session.add(new_roll)
+    db.session.commit()
+
+    return redirect(url_for('index'))
+
+
+@app.route('/duplicate_print/<int:print_id>', methods=['POST'])
+def duplicate_print(print_id):
+    print_job = PrintJob.query.get_or_404(print_id)
+
+    # Capture new values from the form
+    new_project_name = request.form['project_name']
+    new_length_used = float(request.form['length_used'])
+    new_weight_used = float(request.form['weight_used'])
+    new_filament_id = int(request.form['filament_id'])
+
+    # Create a new print job with modified values
+    new_print_job = PrintJob(
+        filament_id=new_filament_id,
+        length_used=new_length_used,
+        weight_used=new_weight_used,
+        project_name=new_project_name
+    )
+
+    # Deduct weight from the selected filament roll
+    new_filament = FilamentRoll.query.get(new_filament_id)
+    if new_filament:
+        new_filament.remaining_weight -= new_weight_used
+
+    db.session.add(new_print_job)
+    db.session.commit()
+
+    return redirect(url_for('index'))
