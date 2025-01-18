@@ -5,6 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Filament Tracker</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .table-auto {
+            table-layout: auto;
+            width: 100%;
+        }
+        .table th, .table td {
+            white-space: nowrap; /* Prevent wrapping */
+            text-align: center;   /* Align actions */
+        }
+    </style>
 </head>
 <body class="container mt-4">
     <h1 class="mb-4">Filament Tracker</h1>
@@ -17,7 +27,7 @@
 
     <!-- Filament Rolls Table -->
     <h2>Filament Rolls</h2>
-    <table class="table table-bordered table-striped">
+    <table class="table table-bordered table-striped table-auto">
         <thead>
             <tr>
                 <th>Maker</th>
@@ -25,7 +35,7 @@
                 <th>Total Weight (g)</th>
                 <th>Remaining Weight (g)</th>
                 <th>In Use</th>
-                <th>Actions</th>
+                <th style="white-space: nowrap;">Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -36,14 +46,24 @@
                 <td>{{ roll.total_weight }}</td>
                 <td>{{ "%.2f"|format(roll.remaining_weight) }}</td>
                 <td>{{ "✅" if roll.in_use else "❌" }}</td>
-                <td>
-                    <button class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#duplicateRollModal{{ roll.id }}">📄 Duplicate</button>
-                    <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editRollModal{{ roll.id }}">✏️ Edit</button>
-                    <form action="{{ url_for('delete_roll', roll_id=roll.id) }}" method="POST" 
-                          onsubmit="return confirm('Are you sure you want to delete this filament roll? This will delete all associated print jobs!');">
-                        <button type="submit" class="btn btn-danger btn-sm">🗑️ Delete</button>
-                    </form>
-                </td>
+                <td style="white-space: nowrap; text-align: center;">
+                    <div class="d-flex justify-content-center gap-2">
+                        <button class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#duplicateRollModal{{ roll.id }}" 
+                                data-bs-toggle="tooltip" title="Duplicate">
+                            📄
+                        </button>
+                        <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editRollModal{{ roll.id }}" 
+                                data-bs-toggle="tooltip" title="Edit">
+                            ✏️
+                        </button>
+                        <form action="{{ url_for('delete_roll', roll_id=roll.id) }}" method="POST"
+                              onsubmit="return confirm('Are you sure you want to delete this filament roll? This will delete all associated print jobs!');">
+                            <button type="submit" class="btn btn-danger btn-sm" data-bs-toggle="tooltip" title="Delete">
+                                🗑️
+                            </button>
+                        </form>
+                    </div>
+                </td>                                
             </tr>
             {% endfor %}
         </tbody>
@@ -59,7 +79,7 @@
                 <th>Weight (g)</th>
                 <th>Filament Color</th>
                 <th>Filament Maker</th>
-                <th>Actions</th>
+                <th style="white-space: nowrap;">Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -70,14 +90,24 @@
                 <td>{{ "%.2f"|format(job.weight_used) }}</td>
                 <td>{{ job.filament.color }}</td>
                 <td>{{ job.filament.maker }}</td>
-                <td>
-                    <button class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#duplicatePrintModal{{ job.id }}">📄 Duplicate</button>
-                    <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editPrintModal{{ job.id }}">✏️ Edit</button>
-                    <form action="{{ url_for('delete_print', print_id=job.id) }}" method="POST" 
-                          onsubmit="return confirm('Are you sure you want to delete this print job?');">
-                        <button type="submit" class="btn btn-danger btn-sm">🗑️ Delete</button>
-                    </form>
-                </td>
+                <td style="white-space: nowrap; text-align: center;">
+                    <div class="d-flex justify-content-center gap-2">
+                        <button class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#duplicatePrintModal{{ job.id }}" 
+                                data-bs-toggle="tooltip" title="Duplicate">
+                            📄
+                        </button>
+                        <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editPrintModal{{ job.id }}" 
+                                data-bs-toggle="tooltip" title="Edit">
+                            ✏️
+                        </button>
+                        <form action="{{ url_for('delete_print', print_id=job.id) }}" method="POST"
+                              onsubmit="return confirm('Are you sure you want to delete this print job?');">
+                            <button type="submit" class="btn btn-danger btn-sm" data-bs-toggle="tooltip" title="Delete">
+                                🗑️
+                            </button>
+                        </form>
+                    </div>
+                </td>                                
             </tr>
             {% endfor %}
         </tbody>
