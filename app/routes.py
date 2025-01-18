@@ -37,3 +37,28 @@ def add_print():
 
     return redirect(url_for('index'))
 
+@app.route('/delete_roll/<int:roll_id>', methods=['POST'])
+def delete_roll(roll_id):
+    roll = FilamentRoll.query.get_or_404(roll_id)
+    
+    # Ensure all associated print jobs are deleted first
+    PrintJob.query.filter_by(filament_id=roll.id).delete()
+
+    db.session.delete(roll)
+    db.session.commit()
+    
+    return redirect(url_for('index'))
+
+@app.route('/delete_print/<int:print_id>', methods=['POST'])
+def delete_print(print_id):
+    print_job = PrintJob.query.get_or_404(print_id)
+
+    # Restore the filament roll’s remaining weight
+    filament = FilamentRoll.query.get(print_job.filament_id)
+    if filament:
+        filament.remaining_weight += print_job.weight_used
+
+    db.session.delete(print_job)
+    db.session.commit()
+    
+    return redirect(url_for('index'))
