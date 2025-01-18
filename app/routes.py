@@ -62,3 +62,39 @@ def delete_print(print_id):
     db.session.commit()
     
     return redirect(url_for('index'))
+
+@app.route('/edit_roll/<int:roll_id>', methods=['POST'])
+def edit_roll(roll_id):
+    roll = FilamentRoll.query.get_or_404(roll_id)
+
+    roll.maker = request.form['maker']
+    roll.color = request.form['color']
+    roll.total_weight = float(request.form['total_weight'])
+    roll.remaining_weight = float(request.form['remaining_weight'])
+    roll.in_use = 'in_use' in request.form  # Checkbox handling
+
+    db.session.commit()
+    return redirect(url_for('index'))
+
+@app.route('/edit_print/<int:print_id>', methods=['POST'])
+def edit_print(print_id):
+    print_job = PrintJob.query.get_or_404(print_id)
+    filament = FilamentRoll.query.get(print_job.filament_id)
+
+    # Restore previous filament weight before updating
+    if filament:
+        filament.remaining_weight += print_job.weight_used
+
+    # Update print job details
+    print_job.project_name = request.form['project_name']
+    print_job.length_used = float(request.form['length_used'])
+    print_job.weight_used = float(request.form['weight_used'])
+    print_job.filament_id = int(request.form['filament_id'])
+
+    # Subtract new weight from the updated filament roll
+    new_filament = FilamentRoll.query.get(print_job.filament_id)
+    if new_filament:
+        new_filament.remaining_weight -= print_job.weight_used
+
+    db.session.commit()
+    return redirect(url_for('index'))
