@@ -1,4 +1,8 @@
 from app import db
+from datetime import datetime
+import pytz
+
+LOCAL_TZ = pytz.timezone("Europe/Berlin")
 
 class FilamentRoll(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -14,7 +18,9 @@ class PrintJob(db.Model):
     length_used = db.Column(db.Float, nullable=False)
     weight_used = db.Column(db.Float, nullable=False)
     project_name = db.Column(db.String(255), nullable=False)
+    date = db.Column(db.DateTime, default=lambda: datetime.now(LOCAL_TZ))
     filament = db.relationship('FilamentRoll', backref='prints')
+
 
     def save(self):
         self.filament.remaining_weight -= self.weight_used

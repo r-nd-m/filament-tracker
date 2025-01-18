@@ -1,3 +1,4 @@
+from datetime import datetime
 from flask import render_template, request, redirect, url_for
 from app import app, db
 from app.models import FilamentRoll, PrintJob
@@ -5,8 +6,8 @@ from app.models import FilamentRoll, PrintJob
 @app.route('/')
 def index():
     rolls = FilamentRoll.query.all()
-    print_jobs = PrintJob.query.order_by(PrintJob.id.desc()).all()  # Show latest prints first
-    return render_template('index.html', rolls=rolls, print_jobs=print_jobs)
+    print_jobs = PrintJob.query.order_by(PrintJob.date.desc()).all()
+    return render_template('index.html', rolls=rolls, print_jobs=print_jobs, datetime=datetime)
 
 @app.route('/add_roll', methods=['POST'])
 def add_roll():
@@ -25,16 +26,28 @@ def add_roll():
 def add_print():
     filament_id = int(request.form['filament_id'])
     length_used = float(request.form['length_used'])
-    weight_used = float(request.form['weight_used'])  # Ensure float conversion
+    weight_used = float(request.form['weight_used'])
     project_name = request.form['project_name']
+    
+    # Parse date from input, fallback to current time
+    date_str = request.form['date']
+    date = datetime.strptime(date_str, "%Y-%m-%dT%H:%M") if date_str else datetime.now()
 
-    roll = FilamentRoll.query.get(filament_id)
-    if roll and roll.remaining_weight >= weight_used:
-        print_job = PrintJob(filament_id=filament_id, length_used=length_used, weight_used=weight_used, project_name=project_name)
-        db.session.add(print_job)
-        roll.remaining_weight -= weight_used
-        db.session.commit()
+    print_job = PrintJob(
+        filament_id=filament_id,
+        length_used=length_used,
+        weight_used=weight_used,
+        project_name=project_name,
+        date=date  # Ensure local time is stored
+    )
 
+    filament = FilamentRoll.query.get(filament_id)
+    if filament:
+        filament.remaining_weight -= weight_used
+
+    db.session.add(print_job)
+    db.session.commit()
+    
     return redirect(url_for('index'))
 
 @app.route('/delete_roll/<int:roll_id>', methods=['POST'])
@@ -81,17 +94,18 @@ def edit_print(print_id):
     print_job = PrintJob.query.get_or_404(print_id)
     filament = FilamentRoll.query.get(print_job.filament_id)
 
-    # Restore previous filament weight before updating
     if filament:
         filament.remaining_weight += print_job.weight_used
 
-    # Update print job details
     print_job.project_name = request.form['project_name']
     print_job.length_used = float(request.form['length_used'])
     print_job.weight_used = float(request.form['weight_used'])
     print_job.filament_id = int(request.form['filament_id'])
 
-    # Subtract new weight from the updated filament roll
+    # Parse new date from input
+    date_str = request.form['date']
+    print_job.date = datetime.strptime(date_str, "%Y-%m-%dT%H:%M") if date_str else datetime.now()
+
     new_filament = FilamentRoll.query.get(print_job.filament_id)
     if new_filament:
         new_filament.remaining_weight -= print_job.weight_used
@@ -128,21 +142,23 @@ def duplicate_roll(roll_id):
 def duplicate_print(print_id):
     print_job = PrintJob.query.get_or_404(print_id)
 
-    # Capture new values from the form
     new_project_name = request.form['project_name']
     new_length_used = float(request.form['length_used'])
     new_weight_used = float(request.form['weight_used'])
     new_filament_id = int(request.form['filament_id'])
 
-    # Create a new print job with modified values
+    # Parse new date or use current time
+    date_str = request.form['date']
+    new_date = datetime.strptime(date_str, "%Y-%m-%dT%H:%M") if date_str else datetime.now()
+
     new_print_job = PrintJob(
         filament_id=new_filament_id,
         length_used=new_length_used,
         weight_used=new_weight_used,
-        project_name=new_project_name
+        project_name=new_project_name,
+        date=new_date
     )
 
-    # Deduct weight from the selected filament roll
     new_filament = FilamentRoll.query.get(new_filament_id)
     if new_filament:
         new_filament.remaining_weight -= new_weight_used

@@ -79,6 +79,7 @@
         <thead>
             <tr>
                 <th>Project</th>
+                <th>Date</th>
                 <th>Filament Used</th>
                 <th>Weight (g)</th>
                 <th>Filament Color</th>
@@ -90,6 +91,7 @@
             {% for job in print_jobs %}
             <tr>
                 <td>{{ job.project_name }}</td>
+                <td>{{ job.date.strftime('%#d/%#m/%Y %H:%M') if job.date else 'Unknown' }}</td>
                 <td>{{ job.length_used }} mm</td>
                 <td>{{ "%.2f"|format(job.weight_used) }}</td>
                 <td>{{ job.filament.color }}</td>
@@ -169,6 +171,11 @@
                             </select>
                         </div>
                         <div class="mb-3">
+                            <label for="date" class="form-label">Print Date/Time:</label>
+                            <input type="datetime-local" id="date" name="date" class="form-control" 
+                                   value="{{ datetime.now().strftime('%Y-%m-%dT%H:%M') }}" required>
+                        </div>
+                        <div class="mb-3">
                             <label for="length_used" class="form-label">Length Used (mm):</label>
                             <input type="number" step="0.01" id="length_used" name="length_used" class="form-control" required>
                         </div>
@@ -242,6 +249,11 @@
                             <input type="text" name="project_name" class="form-control" value="{{ job.project_name }}" required>
                         </div>
                         <div class="mb-3">
+                            <label class="form-label">Print Date/Time:</label>
+                            <input type="datetime-local" name="date" class="form-control" 
+                                   value="{{ job.date.strftime('%Y-%m-%dT%H:%M') if job.date else '' }}" required>
+                        </div>                        
+                        <div class="mb-3">
                             <label class="form-label">Filament Used (mm):</label>
                             <input type="number" name="length_used" class="form-control" value="{{ job.length_used }}" required>
                         </div>
@@ -267,6 +279,7 @@
     </div>
     {% endfor %}
 
+    <!-- Duplicate Filament Roll Modals -->
     {% for roll in rolls %}
     <div class="modal fade" id="duplicateRollModal{{ roll.id }}" tabindex="-1" aria-labelledby="duplicateRollLabel{{ roll.id }}" aria-hidden="true">
         <div class="modal-dialog">
@@ -301,6 +314,7 @@
     </div>
     {% endfor %}
 
+    <!-- Duplicate Print Job Modals -->
     {% for job in print_jobs %}
     <div class="modal fade" id="duplicatePrintModal{{ job.id }}" tabindex="-1" aria-labelledby="duplicatePrintLabel{{ job.id }}" aria-hidden="true">
         <div class="modal-dialog">
@@ -315,6 +329,11 @@
                             <label class="form-label">Project Name:</label>
                             <input type="text" name="project_name" class="form-control" value="{{ job.project_name }}" required>
                         </div>
+                        <div class="mb-3">
+                            <label class="form-label">Print Date/Time:</label>
+                            <input type="datetime-local" name="date" class="form-control" 
+                                   value="{{ job.date.strftime('%Y-%m-%dT%H:%M') if job.date else datetime.now().strftime('%Y-%m-%dT%H:%M') }}" required>
+                        </div>                        
                         <div class="mb-3">
                             <label class="form-label">Filament Used (mm):</label>
                             <input type="number" name="length_used" class="form-control" value="{{ job.length_used }}" required>
