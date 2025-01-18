@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Filament Tracker</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="container mt-4">
+    <h1 class="mb-4">Filament Tracker</h1>
+
+    <!-- Buttons to open modals -->
+    <div class="mb-3">
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addRollModal">➕ Add Roll</button>
+        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addPrintModal">🖨️ Add Print Job</button>
+    </div>
+
+    <!-- Filament Rolls Table -->
+    <h2>Filament Rolls</h2>
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>Maker</th>
+                <th>Color</th>
+                <th>Total Weight (g)</th>
+                <th>Remaining Weight (g)</th>
+                <th>In Use</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for roll in rolls %}
+            <tr>
+                <td>{{ roll.maker }}</td>
+                <td>{{ roll.color }}</td>
+                <td>{{ roll.total_weight }}</td>
+                <td>{{ "%.2f"|format(roll.remaining_weight) }}</td>
+                <td>{{ "✅" if roll.in_use else "❌" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Print Jobs Table -->
+    <h2>Print History</h2>
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>Project</th>
+                <th>Filament Used</th>
+                <th>Weight (g)</th>
+                <th>Filament Color</th>
+                <th>Filament Maker</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for job in print_jobs %}
+            <tr>
+                <td>{{ job.project_name }}</td>
+                <td>{{ job.length_used }} mm</td>
+                <td>{{ job.weight_used }}</td>
+                <td>{{ job.filament.color }}</td>
+                <td>{{ job.filament.maker }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Add Filament Roll Modal -->
+    <div class="modal fade" id="addRollModal" tabindex="-1" aria-labelledby="addRollLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addRollLabel">Add Filament Roll</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form action="{{ url_for('add_roll') }}" method="POST">
+                        <div class="mb-3">
+                            <label for="maker" class="form-label">Maker:</label>
+                            <input type="text" id="maker" name="maker" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="color" class="form-label">Color:</label>
+                            <input type="text" id="color" name="color" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="total_weight" class="form-label">Total Weight (g):</label>
+                            <input type="number" id="total_weight" name="total_weight" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="remaining_weight" class="form-label">Remaining Weight (g):</label>
+                            <input type="number" id="remaining_weight" name="remaining_weight" class="form-control" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Add Roll</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Print Job Modal -->
+    <div class="modal fade" id="addPrintModal" tabindex="-1" aria-labelledby="addPrintLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addPrintLabel">Add Print Job</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form action="{{ url_for('add_print') }}" method="POST">
+                        <div class="mb-3">
+                            <label for="filament_id" class="form-label">Select Filament:</label>
+                            <select id="filament_id" name="filament_id" class="form-control">
+                                {% for roll in rolls %}
+                                <option value="{{ roll.id }}">{{ roll.maker }} - {{ roll.color }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="length_used" class="form-label">Length Used (mm):</label>
+                            <input type="number" step="0.01" id="length_used" name="length_used" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="weight_used" class="form-label">Weight Used (g):</label>
+                            <input type="number" step="0.01" id="weight_used" name="weight_used" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="project_name" class="form-label">Project Name:</label>
+                            <input type="text" id="project_name" name="project_name" class="form-control" required>
+                        </div>
+                        <button type="submit" class="btn btn-success">Add Print Job</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
