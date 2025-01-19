@@ -14,9 +14,6 @@ data/
 *.db
 *.sqlite3
 
-# Flask-Migrate migration files (optional)
-migrations/
-
 # Logs and cache
 *.log
 logs/
