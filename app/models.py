@@ -15,7 +15,6 @@ class FilamentRoll(db.Model):
 class PrintJob(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     filament_id = db.Column(db.Integer, db.ForeignKey('filament_roll.id'), nullable=False)
-    length_used = db.Column(db.Float, nullable=False)
     weight_used = db.Column(db.Float, nullable=False)
     project_name = db.Column(db.String(255), nullable=False)
     date = db.Column(db.DateTime, default=lambda: datetime.now(LOCAL_TZ))

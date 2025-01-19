@@ -25,7 +25,6 @@ def add_roll():
 @app.route('/add_print', methods=['POST'])
 def add_print():
     filament_id = int(request.form['filament_id'])
-    length_used = float(request.form['length_used'])
     weight_used = float(request.form['weight_used'])
     project_name = request.form['project_name']
     
@@ -35,7 +34,6 @@ def add_print():
 
     print_job = PrintJob(
         filament_id=filament_id,
-        length_used=length_used,
         weight_used=weight_used,
         project_name=project_name,
         date=date  # Ensure local time is stored
@@ -98,7 +96,6 @@ def edit_print(print_id):
         filament.remaining_weight += print_job.weight_used
 
     print_job.project_name = request.form['project_name']
-    print_job.length_used = float(request.form['length_used'])
     print_job.weight_used = float(request.form['weight_used'])
     print_job.filament_id = int(request.form['filament_id'])
 
@@ -143,7 +140,6 @@ def duplicate_print(print_id):
     print_job = PrintJob.query.get_or_404(print_id)
 
     new_project_name = request.form['project_name']
-    new_length_used = float(request.form['length_used'])
     new_weight_used = float(request.form['weight_used'])
     new_filament_id = int(request.form['filament_id'])
 
@@ -153,7 +149,6 @@ def duplicate_print(print_id):
 
     new_print_job = PrintJob(
         filament_id=new_filament_id,
-        length_used=new_length_used,
         weight_used=new_weight_used,
         project_name=new_project_name,
         date=new_date
