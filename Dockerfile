@@ -10,7 +10,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Make sure entrypoint.sh is executable
-RUN chmod +x /app/entrypoint.sh
+RUN chmod +x app/entrypoint.sh
 
 # Set the container entrypoint
-ENTRYPOINT ["/app/entrypoint.sh"]
+ENTRYPOINT ["app/entrypoint.sh"]
