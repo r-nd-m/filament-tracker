@@ -25,3 +25,9 @@ class PrintJob(db.Model):
         self.filament.remaining_weight -= self.weight_used
         db.session.add(self)
         db.session.commit()
+
+class TempPrintJob(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    project_name = db.Column(db.String(255), nullable=False)
+    weight_used = db.Column(db.Float, nullable=False)
+    date = db.Column(db.DateTime, default=lambda: datetime.now(LOCAL_TZ))

@@ -1,13 +1,14 @@
 from datetime import datetime
-from flask import render_template, request, redirect, url_for
+from flask import render_template, request, redirect, url_for, jsonify
 from app import app, db
-from app.models import FilamentRoll, PrintJob
+from app.models import FilamentRoll, PrintJob, TempPrintJob
 
 @app.route('/')
 def index():
     rolls = FilamentRoll.query.all()
     print_jobs = PrintJob.query.order_by(PrintJob.date.desc()).all()
-    return render_template('index.html', rolls=rolls, print_jobs=print_jobs, datetime=datetime)
+    temp_jobs = TempPrintJob.query.order_by(TempPrintJob.date.desc()).all()
+    return render_template('index.html', rolls=rolls, print_jobs=print_jobs, datetime=datetime,  temp_jobs=temp_jobs)
 
 @app.route('/add_roll', methods=['POST'])
 def add_roll():
@@ -159,6 +160,74 @@ def duplicate_print(print_id):
         new_filament.remaining_weight -= new_weight_used
 
     db.session.add(new_print_job)
+    db.session.commit()
+
+    return redirect(url_for('index'))
+
+@app.route('/add_temp_job', methods=['POST'])
+def add_temp_job():
+    data = request.get_json()
+
+    # Validate incoming data
+    if not data or "project_name" not in data or "weight_used" not in data:
+        return jsonify({"error": "Invalid data"}), 400
+
+    try:
+        # Handle missing or incorrect date format
+        date_str = data.get("date", "")
+        try:
+            job_date = datetime.strptime(date_str, "%Y-%m-%dT%H:%M") if date_str else datetime.now()
+        except ValueError:
+            job_date = datetime.now()  # Use current time if format is invalid
+
+        # Create the temporary job
+        temp_job = TempPrintJob(
+            project_name=data["project_name"],
+            weight_used=data["weight_used"],
+            date=job_date
+        )
+
+        db.session.add(temp_job)
+        db.session.commit()
+
+        return jsonify({"message": "Temporary job added successfully"}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/delete_temp_job/<int:job_id>', methods=['POST'])
+def delete_temp_job(job_id):
+    job = TempPrintJob.query.get_or_404(job_id)
+    db.session.delete(job)
+    db.session.commit()
+    return redirect(url_for('index'))
+
+@app.route('/approve_temp_job/<int:job_id>', methods=['POST'])
+def approve_temp_job(job_id):
+    job = TempPrintJob.query.get_or_404(job_id)
+
+    # Get form data
+    project_name = request.form.get("project_name")
+    date = request.form.get("date")
+    weight_used = request.form.get("weight_used")
+    filament_id = request.form.get("filament_id")
+
+    # Convert date from string to datetime
+    try:
+        job_date = datetime.strptime(date, "%Y-%m-%dT%H:%M")
+    except ValueError:
+        job_date = datetime.now()  # Default to current time if invalid
+
+    # Move job to PrintJob table
+    new_print = PrintJob(
+        project_name=project_name,
+        date=job_date,
+        weight_used=weight_used,
+        filament_id=filament_id
+    )
+
+    db.session.add(new_print)
+    db.session.delete(job)  # Remove from temp jobs
     db.session.commit()
 
     return redirect(url_for('index'))

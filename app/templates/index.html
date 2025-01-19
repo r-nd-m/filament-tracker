@@ -117,6 +117,44 @@
         </tbody>
     </table>
 
+    <h2>Unreviewed Print Jobs</h2>
+    <table class="table table-bordered table-striped" id="tempPrintTable">
+        <thead>
+            <tr>
+                <th>Project Name</th>
+                <th>Date</th>
+                <th>Weight Used (g)</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for job in temp_jobs %}
+            <tr>
+                <td>{{ job.project_name }}</td>
+                <td>{{ job.date.strftime('%d/%m/%Y %H:%M') if job.date else 'Unknown' }}</td>
+                <td>{{ "%.2f"|format(job.weight_used) }}</td>
+                <td>
+                    <div class="d-flex justify-content-center gap-2">
+                        <!-- Approve Button (opens modal) -->
+                        <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#approvePrintModal{{ job.id }}"
+                                data-bs-toggle="tooltip" title="Approve">
+                            ✅
+                        </button>
+
+                        <!-- Delete Button -->
+                        <form action="{{ url_for('delete_temp_job', job_id=job.id) }}" method="POST"
+                            onsubmit="return confirm('Are you sure you want to delete this unreviewed print job?');">
+                            <button type="submit" class="btn btn-danger btn-sm" data-bs-toggle="tooltip" title="Delete">
+                                🗑️
+                            </button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
     <!-- Add Filament Roll Modal -->
     <div class="modal fade" id="addRollModal" tabindex="-1" aria-labelledby="addRollLabel" aria-hidden="true">
         <div class="modal-dialog">
@@ -346,12 +384,53 @@
     </div>
     {% endfor %}
 
+    <!-- Approve Print Job Modals -->
+    {% for job in temp_jobs %}
+    <div class="modal fade" id="approvePrintModal{{ job.id }}" tabindex="-1" aria-labelledby="approvePrintLabel{{ job.id }}" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="approvePrintLabel{{ job.id }}">Approve Print Job</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form action="{{ url_for('approve_temp_job', job_id=job.id) }}" method="POST">
+                        <div class="mb-3">
+                            <label class="form-label">Project Name:</label>
+                            <input type="text" name="project_name" class="form-control" value="{{ job.project_name }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Print Date/Time:</label>
+                            <input type="datetime-local" name="date" class="form-control" 
+                                value="{{ job.date.strftime('%Y-%m-%dT%H:%M') if job.date else '' }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Weight Used (g):</label>
+                            <input type="number" step="0.01" name="weight_used" class="form-control" value="{{ job.weight_used }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Select Filament:</label>
+                            <select name="filament_id" class="form-control">
+                                {% for roll in rolls %}
+                                <option value="{{ roll.id }}">{{ roll.maker }} - {{ roll.color }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-success">Approve Print Job</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         function filterTables() {
             let input = document.getElementById("searchInput").value.toLowerCase();
             filterTable("filamentTable", input);
             filterTable("printTable", input);
+            filterTable("tempPrintTable", input);
         }
         
         function filterTable(tableId, query) {
