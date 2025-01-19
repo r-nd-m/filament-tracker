@@ -74,43 +74,45 @@
     </table>
 
     <!-- Unreviewed Print Jobs Table -->
-    <h2>Unreviewed Print Jobs</h2>
-    <table class="table table-bordered table-striped" id="tempPrintTable">
-        <thead>
-            <tr>
-                <th>Project Name</th>
-                <th>Date</th>
-                <th>Weight Used (g)</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for job in temp_jobs %}
-            <tr>
-                <td>{{ job.project_name }}</td>
-                <td>{{ job.date.strftime('%d/%m/%Y %H:%M') if job.date else 'Unknown' }}</td>
-                <td>{{ "%.2f"|format(job.weight_used) }}</td>
-                <td>
-                    <div class="d-flex justify-content-center gap-2">
-                        <!-- Approve Button (opens modal) -->
-                        <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#approvePrintModal{{ job.id }}"
-                                data-bs-toggle="tooltip" title="Approve">
-                            ✅
-                        </button>
-
-                        <!-- Delete Button -->
-                        <form action="{{ url_for('delete_temp_job', job_id=job.id) }}" method="POST"
-                            onsubmit="return confirm('Are you sure you want to delete this unreviewed print job?');">
-                            <button type="submit" class="btn btn-danger btn-sm" data-bs-toggle="tooltip" title="Delete">
-                                🗑️
+    {% if temp_jobs %}
+        <h2>Unreviewed Print Jobs</h2>
+        <table class="table table-bordered table-striped" id="tempPrintTable">
+            <thead>
+                <tr>
+                    <th>Project Name</th>
+                    <th>Date</th>
+                    <th>Weight Used (g)</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for job in temp_jobs %}
+                <tr>
+                    <td>{{ job.project_name }}</td>
+                    <td>{{ job.date.strftime('%d/%m/%Y %H:%M') if job.date else 'Unknown' }}</td>
+                    <td>{{ "%.2f"|format(job.weight_used) }}</td>
+                    <td>
+                        <div class="d-flex justify-content-center gap-2">
+                            <!-- Approve Button (opens modal) -->
+                            <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#approvePrintModal{{ job.id }}"
+                                    data-bs-toggle="tooltip" title="Approve">
+                                ✅
                             </button>
-                        </form>
-                    </div>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+
+                            <!-- Delete Button -->
+                            <form action="{{ url_for('delete_temp_job', job_id=job.id) }}" method="POST"
+                                onsubmit="return confirm('Are you sure you want to delete this unreviewed print job?');">
+                                <button type="submit" class="btn btn-danger btn-sm" data-bs-toggle="tooltip" title="Delete">
+                                    🗑️
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
 
     <!-- Print Jobs Table -->
     <h2>Print History</h2>
