@@ -1,42 +1,48 @@
 # Filament Tracker
 
-## Overview
-Filament Tracker is a **Flask-based Python web app** for managing **3D printing filament usage and print jobs**.  
-It tracks **filament rolls**, logs **print jobs**, and integrates with **PrusaSlicer** to automatically import print data.
+Filament Tracker is a **Flask-based Python web app** for managing **3D printing filament usage and print jobs**. It tracks **filament rolls**, logs **print jobs**, and integrates with **PrusaSlicer** to automatically import print data.
 
-### Database
-A lightweight database is used for the app (SQLite) and data is saved locally, in ./data/database.db. It is recommended to back up this file from time to time.
+## Features
 
-## How to Run
+- **Filament Roll Management**: Add, edit, duplicate, and delete filament rolls.
+- **Print Job Tracking**: Log print jobs, assign them to specific filament rolls, and track filament usage.
+- **Unreviewed Print Jobs**: Temporary print job storage for review and approval.
+- **PrusaSlicer Integration**: Automatically import print job details from G-code.
+- **Search and Filter**: Easily search and filter through filament rolls and print jobs.
+- **Data Persistence**: Uses an SQLite database to store all information.
+- **Bootstrap-based UI**: Responsive and user-friendly design.
 
-### 🚀 Docker (Recommended)
-1. **Clone this Repo**
-   ```bash
+## Prerequisites
+
+Ensure you have the following installed on your system:
+
+- Docker
+- Docker Compose
+
+## Installation
+
+1. Clone the repository:
+   ```sh
    git clone https://github.com/mrfenyx/filament-tracker.git
+   cd filament-tracker
    ```
-1. **Pull and Run the Container:**
-   Inside the repository folder, run:
-   ```bash
-   docker-compose up -d
-   ```
-2. **Access the Web App:**  
-   Open `http://localhost:5000` (or the IP/port combination of your docker host) in your browser.
 
-### 🛠️ Manual Setup (Development)
-1. **Install dependencies:**
-   ```bash
-   pip install -r requirements.txt
+2. Run the application using Docker Compose:
+   ```sh
+   docker-compose up -d --build
    ```
-2. **Run the app:**
-   ```bash
-   flask run
-   ```
-3. **Access:**  
-   Open `http://localhost:5000` in your browser.
 
----
+3. The database will be stored in the `./data/` directory, which should be backed up regularly to prevent data loss.
 
-## 🔹 PrusaSlicer Integration
+## Running the Application
+
+The application will run as a Docker container. Access it in your browser at:
+
+```
+http://127.0.0.1:5000/
+```
+
+## PrusaSlicer Integration
 Filament Tracker can automatically capture **filament usage and project names** from **PrusaSlicer** using a post-processing script.
 
 ### ✅ How It Works
@@ -78,3 +84,43 @@ Data extracted and sent to Filament Tracker.
 1. Open Filament Tracker (`http://localhost:5000`).
 2. Under **Unreviewed Print Jobs**, find the newly added entry.
 3. Click **Approve**, select the correct filament roll, adjust values if needed, and save the print job.
+
+## Usage
+
+![Filament Tracker UI](./static/images/UI.png)
+
+### Adding a Filament Roll
+- Click on the 1️⃣ **"Add Roll"** button.
+- Enter details like Maker, Color, Total Weight, and Remaining Weight.
+- Click **"Add Roll"** to save it.
+
+### Logging a Print Job
+- Click on the 2️⃣ **"Add Print Job"** button.
+- Select a filament roll, enter the print job details, and click **"Add Print Job"**.
+- The remaining filament weight will automatically be updated.
+
+### Reviewing Temporary Print Jobs
+- Temporary jobs appear in the **"Unreviewed Print Jobs"** section.
+- Click 6️⃣ **✅ Approve** to finalize a job.
+- Click 7️⃣ **🗑️ Delete** to remove it.
+
+### Managing Filament Rolls and Print Jobs
+Each entry has action buttons:
+- 3️⃣ & 8️⃣ **📄 Duplicate**: Clone an existing filament roll or print job.
+- 4️⃣ & 9️⃣ **✏️ Edit**: Modify the details.
+- 5️⃣ & 🔟 **🗑️ Delete**: Remove an entry (deleting a filament roll will also delete associated print jobs).
+
+## Database Management
+The database is mounted to the local `./data/` directory as defined in `docker-compose.yml` (feel free to change this):
+```yml
+    volumes:
+      - ./data:/app/data
+```
+**Ensure that this folder is backed up regularly to avoid data loss.**
+
+## License
+This project is open-source and available under the MIT License.
+
+---
+Happy Printing! 🎨🎭
+
