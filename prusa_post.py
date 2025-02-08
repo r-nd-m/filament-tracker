@@ -7,10 +7,10 @@ from pathlib import Path
 from datetime import datetime
 
 # Flask API Endpoint
-API_URL = "http://192.168.2.25:4892/add_temp_job" # Add path to your API endpoint
+API_URL = "http://127.0.0.1:5000/add_temp_job" # Replace 127.0.0.1 with the IP address of your server if necessary
 
 # ArcWelder Path
-ARCWELDER_PATH = r"C:\Users\mirce\OneDrive\Desktop\3D Models\ArcWelder.exe"
+ARCWELDER_PATH = r"<Path_to>\ArcWelder.exe" # Replace <Path_to> with the path to the ArcWelder executable
 
 def format_project_name(raw_name):
     """Converts raw input filename base to a properly formatted project name."""

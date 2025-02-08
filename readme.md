@@ -12,7 +12,7 @@ It tracks **filament rolls**, logs **print jobs**, and integrates with **PrusaSl
    docker-compose up -d
    ```
 2. **Access the Web App:**  
-   Open `http://localhost:5000` in your browser.
+   Open `http://localhost:5000` (or the IP/port combination of your docker host) in your browser.
 
 ### 🛠️ Manual Setup (Development)
 1. **Install dependencies:**
@@ -24,7 +24,7 @@ It tracks **filament rolls**, logs **print jobs**, and integrates with **PrusaSl
    flask run
    ```
 3. **Access:**  
-   Open `http://127.0.0.1:5000` in your browser.
+   Open `http://localhost:5000` in your browser.
 
 ---
 
@@ -49,6 +49,7 @@ Filament Tracker can automatically capture **filament usage and project names** 
    ```
    - Replace `C:\Users\YourUser\path\to\python.exe` with your actual Python path.
    - Replace `C:\path\to\prusa_post.py` with the actual script location.
+   - Edit
 
 #### **2️⃣ How to Manually Run `prusa_post.py` (Testing)**
 You can manually run the script to test how it processes a G-code file:
