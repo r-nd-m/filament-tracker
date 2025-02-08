@@ -2,7 +2,10 @@
 
 ## Overview
 Filament Tracker is a **Flask-based Python web app** for managing **3D printing filament usage and print jobs**.  
-It tracks **filament rolls**, logs **print jobs**, and integrates with **PrusaSlicer** to automatically import print data.  
+It tracks **filament rolls**, logs **print jobs**, and integrates with **PrusaSlicer** to automatically import print data.
+
+### Database
+A lightweight database is used for the app (SQLite) and data is saved locally, in ./data/database.db. It is recommended to back up this file from time to time.
 
 ## How to Run
 
