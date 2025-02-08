@@ -40,7 +40,7 @@ def add_print():
         date=date  # Ensure local time is stored
     )
 
-    filament = FilamentRoll.query.get(filament_id)
+    filament = db.session.get(FilamentRoll, filament_id)
     if filament:
         filament.remaining_weight -= weight_used
 
@@ -51,7 +51,7 @@ def add_print():
 
 @app.route('/delete_roll/<int:roll_id>', methods=['POST'])
 def delete_roll(roll_id):
-    roll = FilamentRoll.query.get_or_404(roll_id)
+    roll = db.session.get(FilamentRoll, roll_id)
     
     # Ensure all associated print jobs are deleted first
     PrintJob.query.filter_by(filament_id=roll.id).delete()
@@ -63,10 +63,10 @@ def delete_roll(roll_id):
 
 @app.route('/delete_print/<int:print_id>', methods=['POST'])
 def delete_print(print_id):
-    print_job = PrintJob.query.get_or_404(print_id)
+    print_job = db.session.get(PrintJob, print_id)
 
     # Restore the filament roll’s remaining weight
-    filament = FilamentRoll.query.get(print_job.filament_id)
+    filament = db.session.get(FilamentRoll, print_job.filament_id)
     if filament:
         filament.remaining_weight += print_job.weight_used
 
@@ -77,7 +77,7 @@ def delete_print(print_id):
 
 @app.route('/edit_roll/<int:roll_id>', methods=['POST'])
 def edit_roll(roll_id):
-    roll = FilamentRoll.query.get_or_404(roll_id)
+    roll = db.session.get(FilamentRoll, roll_id)
 
     roll.maker = request.form['maker']
     roll.color = request.form['color']
@@ -90,8 +90,8 @@ def edit_roll(roll_id):
 
 @app.route('/edit_print/<int:print_id>', methods=['POST'])
 def edit_print(print_id):
-    print_job = PrintJob.query.get_or_404(print_id)
-    filament = FilamentRoll.query.get(print_job.filament_id)
+    print_job = db.session.get(PrintJob, print_id)
+    filament = db.session.get(FilamentRoll, print_job.filament_id)
 
     if filament:
         filament.remaining_weight += print_job.weight_used
@@ -104,7 +104,7 @@ def edit_print(print_id):
     date_str = request.form['date']
     print_job.date = datetime.strptime(date_str, "%Y-%m-%dT%H:%M") if date_str else datetime.now()
 
-    new_filament = FilamentRoll.query.get(print_job.filament_id)
+    new_filament = db.session.get(FilamentRoll, print_job.filament_id)
     if new_filament:
         new_filament.remaining_weight -= print_job.weight_used
 
@@ -113,7 +113,9 @@ def edit_print(print_id):
 
 @app.route('/duplicate_roll/<int:roll_id>', methods=['POST'])
 def duplicate_roll(roll_id):
-    roll = FilamentRoll.query.get_or_404(roll_id)
+    roll = db.session.get(FilamentRoll, roll_id)
+    if not roll:
+        return "Error: Filament roll not found.", 400
 
     # Capture new values from the form
     new_maker = request.form['maker']
@@ -135,11 +137,12 @@ def duplicate_roll(roll_id):
 
     return redirect(url_for('index'))
 
-
 @app.route('/duplicate_print/<int:print_id>', methods=['POST'])
 def duplicate_print(print_id):
-    print_job = PrintJob.query.get_or_404(print_id)
-
+    print = db.session.get(FilamentRoll, print_id)
+    if not print:
+        return "Error: Filament roll not found.", 400
+    
     new_project_name = request.form['project_name']
     new_weight_used = float(request.form['weight_used'])
     new_filament_id = int(request.form['filament_id'])
@@ -155,7 +158,7 @@ def duplicate_print(print_id):
         date=new_date
     )
 
-    new_filament = FilamentRoll.query.get(new_filament_id)
+    new_filament = db.session.get(FilamentRoll, new_filament_id)
     if new_filament:
         new_filament.remaining_weight -= new_weight_used
 
@@ -197,14 +200,14 @@ def add_temp_job():
 
 @app.route('/delete_temp_job/<int:job_id>', methods=['POST'])
 def delete_temp_job(job_id):
-    job = TempPrintJob.query.get_or_404(job_id)
+    job = db.session.get(TempPrintJob, job_id)
     db.session.delete(job)
     db.session.commit()
     return redirect(url_for('index'))
 
 @app.route('/approve_temp_job/<int:job_id>', methods=['POST'])
 def approve_temp_job(job_id):
-    job = TempPrintJob.query.get_or_404(job_id)
+    job = db.session.get(TempPrintJob, job_id)
 
     # Get form data
     project_name = request.form.get("project_name")

@@ -216,7 +216,7 @@
                         </div>
                         <div class="mb-3">
                             <label for="weight_used" class="form-label">Weight Used (g):</label>
-                            <input type="number" step="0.01" id="weight_used" name="weight_used" class="form-control" required>
+                            <input type="number" step="any" id="weight_used" name="weight_used" class="form-control" required>
                         </div>
                         <div class="mb-3">
                             <label for="project_name" class="form-label">Project Name:</label>
@@ -335,7 +335,7 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Remaining Weight (g):</label>
-                            <input type="number" name="remaining_weight" class="form-control" value="{{ roll.remaining_weight }}" required>
+                            <input type="number" step="any" name="remaining_weight" class="form-control" value="{{ roll.remaining_weight }}" required>
                         </div>
                         <button type="submit" class="btn btn-info">Duplicate Roll</button>
                     </form>
@@ -367,7 +367,7 @@
                         </div>                        
                         <div class="mb-3">
                             <label class="form-label">Weight Used (g):</label>
-                            <input type="number" step="0.01" name="weight_used" class="form-control" value="{{ job.weight_used }}" required>
+                            <input type="number" step="any" name="weight_used" class="form-control" value="{{ job.weight_used }}" required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Filament:</label>
@@ -409,7 +409,7 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Weight Used (g):</label>
-                            <input type="number" step="0.01" name="weight_used" class="form-control" value="{{ job.weight_used }}" required>
+                            <input type="number" step="any" name="weight_used" class="form-control" value="{{ job.weight_used }}" required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Select Filament:</label>
