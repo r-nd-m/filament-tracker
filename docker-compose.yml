@@ -1,10 +1,17 @@
+---
+version: '3'
 services:
   web:
     build: .
+    read_only: true
     ports:
       - "5000:5000"
     environment:
       - DATABASE_URL=sqlite:///data/database.db
     volumes:
-      - ./data:/app/data
-    restart: always
+      - ./data:/app/data:rw
+      - type: tmpfs
+        target: /tmp
+        tmpfs:
+          size: 64MB
+    restart: unless-stopped
