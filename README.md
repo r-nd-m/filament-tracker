@@ -58,9 +58,12 @@ Filament Tracker can automatically capture **filament usage and project names** 
 
 #### **1️⃣ Edit the prusa_post.py File**
 
-1. Open `prusa_post.py` and edit the following 2 values:
-   1. API_URL: set the URL of the API Endpoint
-   2. ARCWELDER_PATH: set the local path of Arcwelder.exe (if using it, e.g. for Anycubic printers)
+Set environmental variables in the system:
+
+1. `FILAMENT_TRACKER_API_URL`: set the URL of the API Endpoint
+2. `ARCWELDER_PATH`: set the path of Arcwelder.exe (if using it, e.g. for Anycubic printers)
+
+You can also edit it directly in the prusa_post.py file but this may need updates on code changes in the future, so it is not recommended.
 
 #### **2️⃣ Add the Post-Processing Script in PrusaSlicer**
 
@@ -83,11 +86,11 @@ You can manually run the script to test how it processes a G-code file:
 python prusa_post.py "C:\path\to\your_model.gcode"
 ```
 
-If successful, you should see:
+If successful, you should see something like:
 
 ```plaintext
-Processing G-code: your_model.gcode
-Data extracted and sent to Filament Tracker.
+INFO:root:Processing G-code: arcwelder/test.gcode
+INFO:root:Successfully sent data to Filament Tracker API
 ```
 
 #### **4️⃣ Assigning the Unreviewed Print Jobs**
