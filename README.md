@@ -143,8 +143,9 @@ The database is mounted to the local `./data/` directory as defined in `docker-c
     volumes:
       - ./data:/app/data
 ```
-
-**Ensure that this folder is backed up regularly to avoid data loss.**
+**⚠️NOTES⚠️**
+1. Ensure that if you map this to an existing folder (e.g. NAS volume), you need to give **RW permission to EVERYONE** for that folder.
+2. Ensure that this folder is backed up regularly to avoid data loss.
 
 ## License
 
