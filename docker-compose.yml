@@ -13,5 +13,5 @@ services:
       - type: tmpfs
         target: /tmp
         tmpfs:
-          size: 64MB
+          size: 2GB
     restart: unless-stopped
