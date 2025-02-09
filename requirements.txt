@@ -5,3 +5,4 @@ flask-migrate==4.1.0
 gunicorn==23.0.0
 pytz==2025.1
 requests==2.32.3
+python-dotenv==1.0.1

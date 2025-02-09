@@ -56,14 +56,14 @@ Filament Tracker can automatically capture **filament usage and project names** 
 
 ### 🔧 Setting Up the Integration
 
-#### **1️⃣ Edit the prusa_post.py File**
+#### **1️⃣ Edit the .env File**
 
-Set environmental variables in the system:
+Set environmental variables in the system or the .env file (rename .env.example to .env):
 
 1. `FILAMENT_TRACKER_API_URL`: set the URL of the API Endpoint
 2. `ARCWELDER_PATH`: set the path of Arcwelder.exe (if using it, e.g. for Anycubic printers)
 
-You can also edit it directly in the prusa_post.py file but this may need updates on code changes in the future, so it is not recommended.
+**❗Setting these values directly in the prusa_post.py file is not recommended.❗**
 
 #### **2️⃣ Add the Post-Processing Script in PrusaSlicer**
 
@@ -71,6 +71,12 @@ You can also edit it directly in the prusa_post.py file but this may need update
 2. Go to **Printer Settings → Custom G-code → Post-processing scripts**.
 3. Add the following command (adjust the path to your script):
 
+   If you are using ArcWelder.exe:
+   ```shell
+   "C:\Users\YourUser\path\to\python.exe" "C:\path\to\prusa_post.py" -a
+   ```
+
+   Without ArcWelder.exe
    ```shell
    "C:\Users\YourUser\path\to\python.exe" "C:\path\to\prusa_post.py"
    ```
