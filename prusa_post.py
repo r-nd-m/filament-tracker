@@ -1,3 +1,5 @@
+import argparse
+import logging
 import sys
 import os
 import re
@@ -7,10 +9,17 @@ from pathlib import Path
 from datetime import datetime
 
 # Flask API Endpoint
-API_URL = "http://127.0.0.1:5000/add_temp_job" # Replace 127.0.0.1 with the IP address of your server if necessary
+# Set FILAMENT_TRACKER_API_URL env var with the address of your server if necessary
+FILAMENT_TRACKER_API_URL = os.getenv("FILAMENT_TRACKER_API_URL", "http://127.0.0.1:5000/add_temp_job") 
 
 # ArcWelder Path
-ARCWELDER_PATH = r"<Path_to>\ArcWelder.exe" # Replace <Path_to> with the path to the ArcWelder executable
+# set env var ARCWELDER_PATH tothe full path to the ArcWelder.exe, otherwise ArcWelder executable should be in PATH
+ARCWELDER_PATH = os.getenv("ARCWELDER_PATH", "ArcWelder")
+
+
+logging.basicConfig(
+    level=logging.INFO,  # Change the level to DEBUG for more detailed logging
+)
 
 def format_project_name(raw_name):
     """Converts raw input filename base to a properly formatted project name."""
@@ -25,6 +34,7 @@ def extract_gcode_info(file_path):
     filament_weight = None
     project_name = None
     filename_format = None
+    gcode_filename = None
 
     env_project_name = os.getenv("SLIC3R_PP_OUTPUT_NAME")
     if env_project_name:
@@ -69,7 +79,7 @@ def extract_gcode_info(file_path):
                 project_name = format_project_name("-".join(project_name_parts))
 
     except Exception as e:
-        print(f"Error reading G-code file: {e}")
+        logging.error(f"Error reading G-code file: {e}")
 
     # Ensure we have the project name
     if not project_name:
@@ -86,33 +96,64 @@ def extract_gcode_info(file_path):
 def send_to_flask_api(data):
     """Sends extracted print job data to the Flask backend."""
     try:
-        response = requests.post(API_URL, json=data)
+        response = requests.post(FILAMENT_TRACKER_API_URL, json=data)
         if response.status_code == 200:
-            print("Successfully sent data to Flask")
+            logging.info("Successfully sent data to Filament Tracker API")
         else:
-            print(f"Failed to send data: {response.text}")
+            logging.error(f"Failed to send data: {response.text}")
     except Exception as e:
-        print(f"Error sending data: {e}")
+        logging.error(f"Error sending data: {e}")
 
 def forward_to_arcwelder(file_path):
     """Calls ArcWelder with the given G-code file."""
     try:
         subprocess.run([ARCWELDER_PATH, file_path], check=True)
-        print(f"Successfully forwarded G-code to ArcWelder: {file_path}")
+        logging.info(f"Successfully forwarded G-code to ArcWelder: {file_path}")
     except subprocess.CalledProcessError as e:
-        print(f"Error calling ArcWelder: {e}")
+        logging.error(f"Error calling ArcWelder: {e}")
 
-if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Usage: prusa_post.py <path_to_gcode>")
-        sys.exit(1)
+def main():
+    usage = """
+    Basic usage:
+    python3 prusa_post.py c:\\gcode\\my_file.gcode
 
-    gcode_path = sys.argv[1]
-    print(f"Processing G-code: {gcode_path}")
+    Use with ArcWelder to convert non-arcs to arcs in the output
+    python3 prusa_post.py -a c:\\gcode\\my_file.gcode
+    
+    Use with ArcWelder to convert non-arcs to arcs in the output, with custom path to the executable
+    ARCWELDER_PATH="C:\\tools\ArcWelder.exe" python3 prusa_post.py -a c:\\gcode\\my_file.gcode
+
+    Linux: Use with ArcWelder to convert non-arcs to arcs in the output, with custom path to the executable
+    ARCWELDER_PATH=arcwelder/bin/ArcWelder python3 prusa_post.py -a ../gcode/face_0.4n_0.2mm_PETG_MINI_1d5h24m.gcode
+    """
+    parser = argparse.ArgumentParser(
+        epilog=usage,
+        formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    parser.add_argument(
+        "input",
+        help='input gcode file',
+        type=str,
+    )
+    parser.add_argument(
+        "-a",
+        "--arcwelder",
+        help='Use ArcWelder for converting gcode short lines to arcs',
+        action='store_true'
+    )
+
+    args = parser.parse_args()
+
+    gcode_path = args.input
+    logging.info(f"Processing G-code: {gcode_path}")
 
     extracted_data = extract_gcode_info(gcode_path)
     if extracted_data:
         send_to_flask_api(extracted_data)
 
-    # Forward the file to ArcWelder
-    forward_to_arcwelder(gcode_path)
+    # Forward the file to ArcWelder for further processing if needed
+    if args.arcwelder:
+        forward_to_arcwelder(gcode_path)
+
+if __name__ == "__main__":
+    main()
