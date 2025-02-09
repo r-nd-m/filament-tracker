@@ -1,4 +1,4 @@
-name: Run Tests
+name: Run Tests and Deploy Reports
 
 on:
   push:
@@ -7,6 +7,10 @@ on:
   pull_request:
     branches:
       - main
+
+permissions:
+  pages: write
+  id-token: write
 
 jobs:
   test:
@@ -46,6 +50,23 @@ jobs:
         with:
           name: coverage-report
           path: htmlcov/
+
+      - name: Prepare GitHub Pages Deployment
+        if: github.event_name == 'push'
+        run: |
+          mkdir -p public
+          cp -r htmlcov/* public/
+          cp reports/test_report.html public/index.html
+
+      - name: Upload GitHub Pages Artifact
+        if: github.event_name == 'push'
+        uses: actions/upload-pages-artifact@v2
+        with:
+          path: public/
+
+      - name: Deploy to GitHub Pages
+        if: github.event_name == 'push'
+        uses: actions/deploy-pages@v2
 
       - name: Enforce Coverage (Fail if below 80%)
         run: |
