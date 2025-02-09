@@ -55,7 +55,8 @@ jobs:
         if: github.event_name == 'push'
         run: |
           mkdir -p public
-          cp -r htmlcov/* public/
+          mkdir -p public/coverage
+          cp -r htmlcov/* public/coverage/
           cp reports/test_report.html public/index.html
 
       - name: Upload GitHub Pages Artifact
