@@ -1,0 +1,85 @@
+name: Run Tests and Deploy Reports
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  pages: write
+  id-token: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set Up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install Dependencies
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+          pip install -r requirements-dev.txt
+          pip install pytest pytest-html pytest-cov
+
+      - name: Run Tests with Coverage and HTML Report
+        run: |
+          source venv/bin/activate
+          pytest -v --durations=5 \
+            --cov=app --cov-report=html --cov-report=xml \
+            --html=reports/test_report.html --self-contained-html
+
+      - name: Upload HTML Test Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report
+          path: reports/test_report.html
+
+      - name: Upload Coverage Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: htmlcov/
+
+      - name: Prepare GitHub Pages Deployment
+        if: github.event_name == 'push'
+        run: |
+          mkdir -p public
+          mkdir -p public/coverage
+          cp -r htmlcov/* public/coverage/
+          cp reports/test_report.html public/index.html
+
+      - name: Upload GitHub Pages Artifact
+        if: github.event_name == 'push'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: public/
+
+      - name: Deploy to GitHub Pages
+        if: github.event_name == 'push'
+        uses: actions/deploy-pages@v4
+
+      - name: Enforce Coverage (Fail if below 80%)
+        run: |
+          COVERAGE=$(python -c "import xml.etree.ElementTree as ET; \
+          tree = ET.parse('coverage.xml'); \
+          root = tree.getroot(); \
+          print(root.get('line-rate'))")
+          if (( $(echo "$COVERAGE < 0.80" | bc -l) )); then \
+            echo "Test coverage is below 80%. Failing build."; \
+            exit 1; \
+          fi
+
+      - name: Fail PR on Test Failure
+        if: failure()
+        run: exit 1

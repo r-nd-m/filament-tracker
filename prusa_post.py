@@ -7,6 +7,10 @@ import requests
 import subprocess
 from pathlib import Path
 from datetime import datetime
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Flask API Endpoint
 # Set FILAMENT_TRACKER_API_URL env var with the address of your server if necessary
@@ -18,7 +22,7 @@ ARCWELDER_PATH = os.getenv("ARCWELDER_PATH", "ArcWelder")
 
 
 logging.basicConfig(
-    level=logging.INFO,  # Change the level to DEBUG for more detailed logging
+    level=logging.INFO,  # Set logging level (INFO, DEBUG, WARNING, ERROR, CRITICAL)
 )
 
 def format_project_name(raw_name):
@@ -132,20 +136,28 @@ def main():
     )
     parser.add_argument(
         "input",
-        help='input gcode file',
+        help='Input G-code file (if not provided, the script will try to detect it)',
         type=str,
+        nargs="?"
     )
     parser.add_argument(
         "-a",
         "--arcwelder",
-        help='Use ArcWelder for converting gcode short lines to arcs',
+        help='Use ArcWelder for converting G-code short lines to arcs',
         action='store_true'
     )
 
     args = parser.parse_args()
 
-    gcode_path = args.input
-    logging.info(f"Processing G-code: {gcode_path}")
+    # If no argument is passed, fall back to sys.argv (for PrusaSlicer execution)
+    gcode_path = args.input if args.input else (sys.argv[1] if len(sys.argv) > 1 else None)
+
+    if not gcode_path:
+        logging.error("Error: No G-code file provided.")
+        print("Usage: python prusa_post.py <path_to_gcode>")
+        sys.exit(1)
+
+    print(f"Processing G-code: {gcode_path}")
 
     extracted_data = extract_gcode_info(gcode_path)
     if extracted_data:
