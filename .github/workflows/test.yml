@@ -27,7 +27,36 @@ jobs:
           source venv/bin/activate
           pip install -r requirements-dev.txt
 
-      - name: Run Tests
+      - name: Run Tests with Coverage and HTML Report
         run: |
           source venv/bin/activate
-          pytest -v --durations=5
+          pytest -v --durations=5 \
+            --cov=app --cov-report=html --cov-report=xml \
+            --html=reports/test_report.html --self-contained-html
+
+      - name: Upload HTML Test Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-report
+          path: reports/test_report.html
+
+      - name: Upload Coverage Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-report
+          path: htmlcov/
+
+      - name: Enforce Coverage (Fail if below 80%)
+        run: |
+          COVERAGE=$(python -c "import xml.etree.ElementTree as ET; \
+          tree = ET.parse('coverage.xml'); \
+          root = tree.getroot(); \
+          print(root.get('line-rate'))")
+          if (( $(echo "$COVERAGE < 0.80" | bc -l) )); then \
+            echo "Test coverage is below 80%. Failing build."; \
+            exit 1; \
+          fi
+
+      - name: Fail PR on Test Failure
+        if: failure()
+        run: exit 1
