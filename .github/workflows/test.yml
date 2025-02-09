@@ -60,13 +60,13 @@ jobs:
 
       - name: Upload GitHub Pages Artifact
         if: github.event_name == 'push'
-        uses: actions/upload-pages-artifact@v2
+        uses: actions/upload-pages-artifact@v3
         with:
           path: public/
 
       - name: Deploy to GitHub Pages
         if: github.event_name == 'push'
-        uses: actions/deploy-pages@v2
+        uses: actions/deploy-pages@v4
 
       - name: Enforce Coverage (Fail if below 80%)
         run: |
