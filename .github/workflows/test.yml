@@ -52,7 +52,7 @@ jobs:
           path: htmlcov/
 
       - name: Prepare GitHub Pages Deployment
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' &&  github.repository == 'mrfenyx/filament-tracker'
         run: |
           mkdir -p public
           mkdir -p public/coverage
@@ -60,13 +60,13 @@ jobs:
           cp reports/test_report.html public/index.html
 
       - name: Upload GitHub Pages Artifact
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' &&  github.repository == 'mrfenyx/filament-tracker'
         uses: actions/upload-pages-artifact@v3
         with:
           path: public/
 
       - name: Deploy to GitHub Pages
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' &&  github.repository == 'mrfenyx/filament-tracker'
         uses: actions/deploy-pages@v4
 
       - name: Enforce Coverage (Fail if below 80%)
