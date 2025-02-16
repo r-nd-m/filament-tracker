@@ -124,12 +124,20 @@ if ($useArcWelder) {
 $envFile | Set-Content ".env" -Encoding UTF8
 Write-Host "✅ .env updated successfully."
 
+# ✅ Read package names from requirements.txt
+$requirementsFile = "$installPath\requirements.txt"
+if (Test-Path $requirementsFile) {
+    $requiredPackages = Get-Content $requirementsFile | Where-Object { $_ -match "\S" }  # Remove empty lines
+} else {
+    Write-Host "⚠️  Warning: requirements.txt not found! Skipping package installation."
+    $requiredPackages = @()
+}
+
 # ✅ Install Python packages globally if missing
-$requiredPackages = @("requests", "python-dotenv")
 $missingPackages = $requiredPackages | Where-Object { -not (& pip show $_ 2>$null | Select-String "Version") }
 
 if ($missingPackages) {
-    Write-Host "⚠️ Installing missing Python packages: $($missingPackages -join ', ')"
+    Write-Host "⚠️  Installing missing Python packages globally: $($missingPackages -join ', ')"
     & pip install $missingPackages
 } else {
     Write-Host "✅ All required Python packages are installed."
