@@ -63,9 +63,9 @@ if (-not $installPath) { $installPath = $defaultInstallPath }
 # ✅ Check if the installation folder already exists and contains configuration
 $folderExists = Test-Path "$installPath"
 $hasEnvFile = Test-Path "$installPath\.env"
-$hasPrusaScript = Test-Path "$installPath\prusa_post.py"
+$hasProstScript = Test-Path "$installPath\*.py"
 
-if ($folderExists -and $hasEnvFile -and $hasPrusaScript) {
+if ($folderExists -and $hasEnvFile -and $hasProstScript) {
     Write-Host "⚠️  Existing installation detected at $installPath."
     $choice = Read-Host "🔁 Use existing configuration? (Y = keep existing, N = overwrite) [Default: Y]"
     if ($choice -match "^[Nn]$") {
@@ -143,12 +143,13 @@ if ($missingPackages) {
     Write-Host "✅ All required Python packages are installed."
 }
 
-# ✅ Print PrusaSlicer command if applicable
-$scriptPath = "$installPath\prusa_post.py"
-if (Test-Path $scriptPath) {
+# ✅ Print Slicer command if applicable
+if ($selectedIntegration -eq "prusa" -or $selectedIntegration -eq "orca") {
+    $scriptPath = "$installPath\${selectedIntegration}_post.py"
     $cmd = "`"$pythonPath`" `"$scriptPath`""
     if ($useArcWelder) { $cmd += " -a" }
-    Write-Host "🔧 Add this command to PrusaSlicer in Post-processing scripts:"
+    $slicerName = ($selectedIntegration.Substring(0,1).ToUpper() + $selectedIntegration.Substring(1).ToLower())
+    Write-Host "🔧 Add this command to $slicerName Slicer in Post-processing scripts:"
     Write-Host "`n$cmd;"
 }
 
