@@ -8,7 +8,7 @@ It tracks **filament rolls**, logs **print jobs**, and integrates with **PrusaSl
 - **Filament Roll Management**: Add, edit, duplicate, and delete filament rolls.
 - **Print Job Tracking**: Log print jobs, assign them to specific filament rolls, and track filament usage.
 - **Unreviewed Print Jobs**: Temporary print job storage for review and approval.
-- **PrusaSlicer Integration**: Automatically import print job details from G-code.
+- **PrusaSlicer | OrcaSlicer | AnycubicSlicer Integration**: Automatically import print job details from G-code.
 - **Search and Filter**: Easily search and filter through filament rolls and print jobs.
 - **Data Persistence**: Uses an SQLite database to store all information.
 - **Bootstrap-based UI**: Responsive and user-friendly design.
@@ -52,7 +52,7 @@ Filament Tracker can automatically capture **filament usage and project names** 
 
 ### ✅ How It Works
 
-1. When you export the gcode of a model in a supported  **Slicer**, it executes a **specific script** as a post-processing script.
+1. When you **export the gcode** of a model in a supported  **Slicer**, it executes a **specific script** as a post-processing script.
 2. This script extracts relevant metadata from the generated G-code file, such as:
    - **Filament weight (g)**
    - **Project name (from filename or slicer environment variables)**
@@ -61,7 +61,7 @@ Filament Tracker can automatically capture **filament usage and project names** 
 
 ### 🔧 Setting Up the Integration
 
-#### **1️⃣ Execute the setup script**
+#### **1️⃣ Execute the Setup Script**
 
 1. Open the /integrations folder and execute `setup_integrations.ps1` (PowerShell script)
 2. Follow the prompts in the script (pay attention!)
