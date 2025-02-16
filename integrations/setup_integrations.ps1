@@ -19,7 +19,7 @@ Write-Host "✅ Python found at: $pythonPath"
 # ✅ Set integrations directory
 $integrationsDir = "$PSScriptRoot"
 
-# ✅ List available integrations
+# ✅ List available integrations (directories)
 $integrations = @(Get-ChildItem -Directory -Path $integrationsDir | Select-Object -ExpandProperty Name)
 if (-not $integrations) {
     Write-Host "❌ No integrations found!"
@@ -34,26 +34,41 @@ $integrations | ForEach-Object { Write-Host "`t$index. $_"; $index++ }
 # ✅ Ask user to select an integration
 $defaultSelection = 1
 do {
-    # ✅ Ask for user selection with default option
     $selection = Read-Host "🔢 Enter the number of the integration to set up (default: $defaultSelection)"
 
-    # ✅ Use default if input is empty
     if (-not $selection) { 
         $selection = $defaultSelection 
     }
 
-    # ✅ Validate selection
     if ($selection -match "^\d+$" -and [int]$selection -ge 1 -and [int]$selection -le $integrations.Count) {
         break
     }
 
     Write-Host "❌ Invalid selection. Please enter a valid number (1-$($integrations.Count))."
-
-} while ($true)  # Keep asking until valid input
+} while ($true)
 
 # ✅ Get selected integration name
 $selectedIntegration = $integrations[[int]$selection - 1]
 Write-Host "✅ Selected: $selectedIntegration"
+
+# ✅ Determine base integration if a hidden file exists
+# Default: use the selected integration as its own base.
+$baseIntegrationName = $selectedIntegration
+$selectedIntegrationPath = "$integrationsDir\$selectedIntegration"
+$hiddenFiles = Get-ChildItem -Path $selectedIntegrationPath -Force -File | Where-Object { $_.Name -like ".*" -and $_.Name -notin ".env", ".env.example" }
+if ($hiddenFiles.Count -gt 0) {
+    # Assume the first hidden file indicates the base integration (strip the leading dot)
+    $baseIntegrationName = $hiddenFiles[0].Name.TrimStart(".")
+    Write-Host "🔍 Detected hidden file '$($hiddenFiles[0].Name)' - using '$baseIntegrationName' as the base integration."
+}
+
+# Verify that the base integration folder exists in the integrations directory
+$baseIntegrationPath = "$integrationsDir\$baseIntegrationName"
+if (-not (Test-Path $baseIntegrationPath)) {
+    Write-Host "❌ Base integration folder '$baseIntegrationName' not found in '$integrationsDir'."
+    Pause
+    exit
+}
 
 # ✅ Set installation directory
 $defaultInstallPath = "$env:LOCALAPPDATA\FilaTrack\$selectedIntegration"
@@ -63,24 +78,23 @@ if (-not $installPath) { $installPath = $defaultInstallPath }
 # ✅ Check if the installation folder already exists and contains configuration
 $folderExists = Test-Path "$installPath"
 $hasEnvFile = Test-Path "$installPath\.env"
-$hasProstScript = Test-Path "$installPath\*.py"
+$hasPostScript = Get-ChildItem -Path "$installPath" -Filter "*_post.py" -File -ErrorAction SilentlyContinue
 
-if ($folderExists -and $hasEnvFile -and $hasProstScript) {
+if ($folderExists -and $hasEnvFile -and $hasPostScript) {
     Write-Host "⚠️  Existing installation detected at $installPath."
     $choice = Read-Host "🔁 Use existing configuration? (Y = keep existing, N = overwrite) [Default: Y]"
     if ($choice -match "^[Nn]$") {
         Write-Host "🔄 Overwriting existing installation..."
         Remove-Item -Recurse -Force "$installPath"
         New-Item -Path "$installPath" -ItemType Directory | Out-Null
-        Copy-Item -Path "$integrationsDir\$selectedIntegration\*" -Destination "$installPath" -Recurse -Force
+        Copy-Item -Path "$baseIntegrationPath\*" -Destination "$installPath" -Recurse -Force
     } else {
         Write-Host "✅ Keeping existing installation."
     }
 } else {
-    # ✅ Install fresh if folder doesn't exist
     Write-Host "📂 Installing integration in: $installPath"
     New-Item -Path "$installPath" -ItemType Directory | Out-Null
-    Copy-Item -Path "$integrationsDir\$selectedIntegration\*" -Destination "$installPath" -Recurse -Force
+    Copy-Item -Path "$baseIntegrationPath\*" -Destination "$installPath" -Recurse -Force
 }
 
 # ✅ Move to installation directory
@@ -95,9 +109,13 @@ if ((-not $hasEnvFile) -or (Test-Path ".env.example")) {
 
 # ✅ Read & update FILAMENT_TRACKER_API_URL
 $envFile = Get-Content ".env" -Raw
-$apiUrl = if ($envFile -match 'FILAMENT_TRACKER_API_URL="?([^"\r\n]+)"?') { $matches[1].Trim() } else { "" }
-$apiUrl = Read-Host "🔤 Enter Filament Tracker API URL (default: $apiUrl)"
-if (-not $apiUrl) { $apiUrl = $matches[1] }
+if ($envFile -match 'FILAMENT_TRACKER_API_URL="?([^"\r\n]+)"?') {
+    $currentApiUrl = $matches[1].Trim()
+} else {
+    $currentApiUrl = ""
+}
+$apiUrl = Read-Host "🔤 Enter Filament Tracker API URL (default: $currentApiUrl)"
+if (-not $apiUrl) { $apiUrl = $currentApiUrl }
 
 # ✅ Ask if ArcWelder is used
 $useArcWelder = Read-Host "➡️  Is ArcWelder used? (Y/n) [Default: Y]"
@@ -108,10 +126,14 @@ if ($useArcWelder -match "^[Nn]$") {
 }
 
 # ✅ Read & update ARCWELDER_PATH if needed
-$arcWelderPath = if ($envFile -match 'ARCWELDER_PATH="?([^"\r\n]+)"?') { $matches[1].Trim() } else { "" }
+if ($envFile -match 'ARCWELDER_PATH="?([^"\r\n]+)"?') {
+    $currentArcWelderPath = $matches[1].Trim()
+} else {
+    $currentArcWelderPath = ""
+}
 if ($useArcWelder) {
-    $arcWelderPath = Read-Host "🔤 Enter ArcWelder path (default: $arcWelderPath)"
-    if (-not $arcWelderPath) { $arcWelderPath = $matches[1] }
+    $arcWelderPath = Read-Host "🔤 Enter ArcWelder path (default: $currentArcWelderPath)"
+    if (-not $arcWelderPath) { $arcWelderPath = $currentArcWelderPath }
 }
 
 # ✅ Update .env file safely
@@ -143,9 +165,20 @@ if ($missingPackages) {
     Write-Host "✅ All required Python packages are installed."
 }
 
+# ✅ If the source integration is different from the selected integration, rename post-processing script
+if ($baseIntegrationName -ne $selectedIntegration) {
+    # The expected original post-processing script is named like "Prusa_post.py"
+    $originalScript = Join-Path $installPath ("$baseIntegrationName" + "_post.py")
+    $newScript = Join-Path $installPath ("$selectedIntegration" + "_post.py")
+    if (Test-Path $originalScript) {
+        Rename-Item -Path $originalScript -NewName (Split-Path $newScript -Leaf) -Force
+        Write-Host "🔄 Renamed post-processing script from '$($baseIntegrationName)_post.py' to '$($selectedIntegration)_post.py'."
+    }
+}
+
 # ✅ Print Slicer command if applicable
-if ($selectedIntegration -eq "prusa" -or $selectedIntegration -eq "orca") {
-    $scriptPath = "$installPath\${selectedIntegration}_post.py"
+if ($selectedIntegration -eq "prusa" -or $selectedIntegration -eq "orca" -or $selectedIntegration -eq "anycubic" -or $selectedIntegration -eq "cura") {
+    $scriptPath = Join-Path $installPath ("$selectedIntegration" + "_post.py")
     $cmd = "`"$pythonPath`" `"$scriptPath`""
     if ($useArcWelder) { $cmd += " -a" }
     $slicerName = ($selectedIntegration.Substring(0,1).ToUpper() + $selectedIntegration.Substring(1).ToLower())
