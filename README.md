@@ -41,48 +41,43 @@ Ensure you have the following installed on your system:
 
 The application will run as a Docker container. Access it in your browser at [http://127.0.0.1:5000/](http://127.0.0.1:5000/).
 
-## PrusaSlicer Integration
+## Slicer Integration
 
-Filament Tracker can automatically capture **filament usage and project names** from **PrusaSlicer** using a post-processing script.
+Filament Tracker can automatically capture **filament usage and project names** from different slicers using a post-processing script.
+
+### Supported / Tested Slicers
+* **PrusaSlicer**
+* **OrcaSlicer**
+* **AnycubicSlicer** and **AnycubicSlicerNext**
 
 ### ✅ How It Works
 
-1. When you slice a model in **PrusaSlicer**, it executes `prusa_post.py` as a post-processing script.
+1. When you export the gcode of a model in a supported  **Slicer**, it executes a **specific script** as a post-processing script.
 2. This script extracts relevant metadata from the generated G-code file, such as:
    - **Filament weight (g)**
-   - **Project name (from filename or PrusaSlicer environment variables)**
+   - **Project name (from filename or slicer environment variables)**
    - **Slicing timestamp**
 3. The extracted data is sent to Filament Tracker as an **unreviewed print job**, where you can assign a filament roll and finalize it.
 
 ### 🔧 Setting Up the Integration
 
-#### **1️⃣ Edit the .env File**
+#### **1️⃣ Execute the setup script**
 
-Set environmental variables in the system or the .env file (rename .env.example to .env):
-
-1. `FILAMENT_TRACKER_API_URL`: set the URL of the API Endpoint
-2. `ARCWELDER_PATH`: set the path of Arcwelder.exe (if using it, e.g. for Anycubic printers)
-
-**❗Setting these values directly in the prusa_post.py file is not recommended.❗**
+1. Open the /integrations folder and execute `setup_integrations.ps1` (PowerShell script)
+2. Follow the prompts in the script (pay attention!)
+3. At the end of the setup, you will see a **command** printed on the screen that you need to add to the post-processing script in your slicer software.
 
 #### **2️⃣ Add the Post-Processing Script in PrusaSlicer**
 
 1. Open **PrusaSlicer**.
 2. Go to **Printer Settings → Custom G-code → Post-processing scripts**.
-3. Add the following command (adjust the path to your script):
+3. Add the command printed at the end of the script execution.
 
-   If you are using ArcWelder.exe:
-   ```shell
-   "C:\Users\YourUser\path\to\python.exe" "C:\path\to\prusa_post.py" -a
-   ```
+#### **2️⃣ Add the Post-Processing Script in OrcaSlicer, AnycubicSlicer or AnycubicSlicerNext**
 
-   Without ArcWelder.exe
-   ```shell
-   "C:\Users\YourUser\path\to\python.exe" "C:\path\to\prusa_post.py"
-   ```
-
-   - Replace `C:\Users\YourUser\path\to\python.exe` with your actual Python path.
-   - Replace `C:\path\to\prusa_post.py` with the actual script location.
+1. Open **Slicer**.
+2. Go to **Process → Others Tab → Post-processing scripts**.
+3. Add the command printed at the end of the script execution.
 
 #### **3️⃣ How to Manually Run `prusa_post.py` (Testing)**
 
