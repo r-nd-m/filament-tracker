@@ -22,7 +22,7 @@ ARCWELDER_PATH = os.getenv("ARCWELDER_PATH", "ArcWelder")
 
 
 logging.basicConfig(
-    level=logging.INFO,  # Set logging level (INFO, DEBUG, WARNING, ERROR, CRITICAL)
+    level=logging.DEBUG,  # Set logging level (INFO, DEBUG, WARNING, ERROR, CRITICAL)
 )
 
 def format_project_name(raw_name):
@@ -40,9 +40,11 @@ def extract_gcode_info(file_path):
     filename_format = None
     gcode_filename = None
 
+    # Try to get filename from environment variable
     env_project_name = os.getenv("SLIC3R_PP_OUTPUT_NAME")
     if env_project_name:
         gcode_filename = Path(env_project_name).stem
+        logging.info(f"Using filename from environment variable: {gcode_filename}")
 
     try:
         with open(file_path, "r", encoding="utf-8") as f:
@@ -56,40 +58,63 @@ def extract_gcode_info(file_path):
                         filament_weight = float(match.group(1))
 
                 # Extract output filename format
-                if line.startswith("; output_filename_format"):
-                    match = re.search(r"; output_filename_format = (.+)", line)
+                if line.startswith("; output_filename_format") or line.startswith("; filename_format"):
+                    match = re.search(r"; (?:output_)?filename_format = (.+)", line)
                     if match:
                         filename_format = match.group(1)
-
-        # Extract project name using filename format
+                        logging.info(f"Using filename format: {filename_format}")
+                        
+        # Fallback to file name if env variable not set
         if not gcode_filename:
             gcode_filename = os.path.basename(file_path).replace(".gcode", "")
+            logging.info(f"Using filename from file path: {gcode_filename}")
 
-        model_parts = gcode_filename.split('-')
-
+        # If a filename_format is provided, use dynamic parsing with regex.
         if filename_format:
-            format_parts = filename_format.split('-')
+            # Remove trailing .gcode if present in the format string.
+            if filename_format.endswith(".gcode"):
+                filename_format = filename_format[:-6]
 
-            # Find where {input_filename_base} starts
-            if "{input_filename_base}" in format_parts:
-                base_index = format_parts.index("{input_filename_base}")
+            # Split the format string into tokens (literals and placeholders)
+            tokens = re.split(r'(\{[^}]+\})', filename_format)
+            regex_pattern = ""
+            for token in tokens:
+                logging.debug(f"Token: {token}")
+                if token.startswith("{") and token.endswith("}"):
+                    # Process placeholders.
+                    if token == "{input_filename_base}":
+                        # Use a greedy capture for the base so it can include internal separators.
+                        regex_pattern += r"(?P<input_filename_base>.+)"
+                    else:
+                        # For other placeholders, assume they do not include '-' or '_'.
+                        regex_pattern += r"[^-_]+"
+                else:
+                    # For literal parts, if the token is exactly '-' or '_', allow matching either.
+                    if token in ["-", "_"]:
+                        regex_pattern += "[-_]"
+                    else:
+                        regex_pattern += re.escape(token)
+            # Force full string match and append .gcode extension.
+            regex_pattern = "^" + regex_pattern + r"\.gcode$"
+            logging.debug(f"Constructed regex pattern: {regex_pattern}")
+            
+            # Attempt to match the actual filename (append .gcode to match the regex).
+            match = re.match(regex_pattern, gcode_filename + ".gcode")
+            if match and "input_filename_base" in match.groupdict():
+                extracted = match.group("input_filename_base")
+                logging.info(f"Extracted project name: {extracted}")
+                project_name = format_project_name(extracted)
+                logging.info(f"Formatted project name: {project_name}")
                 
-                # Calculate how many elements to drop from the end
-                total_parts = len(model_parts)
-                extra_parts = len(format_parts) - (base_index + 1)
-
-                # Extract only the project name
-                project_name_parts = model_parts[base_index : total_parts - extra_parts]
-                project_name = format_project_name("-".join(project_name_parts))
-
+        # Fallback to using the base filename if extraction fails.
+        if not project_name:
+            project_name = format_project_name(os.path.basename(file_path).replace(".gcode", ""))
+    
     except Exception as e:
         logging.error(f"Error reading G-code file: {e}")
 
-    # Ensure we have the project name
-    if not project_name:
-        project_name = format_project_name(os.path.basename(file_path).replace(".gcode", ""))
-
-    if filament_weight:
+    # Only return info if filament weight was successfully extracted.
+    if filament_weight is not None:
         return {
             "project_name": project_name,  # Aligned field name
             "weight_used": filament_weight,  # Aligned field name
@@ -169,3 +194,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+    # Uncomment for debugging
+    # input("Press Enter to exit...")
