@@ -3,8 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Filament Tracker</title>
+    <title>FilaTrack</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="icon" href="{{ url_for('static', filename='images/filatrack_icon.svg') }}" type="image/svg+xml">
+
     <style>
         .table-auto {
             table-layout: auto;
@@ -17,7 +19,10 @@
     </style>
 </head>
 <body class="container mt-4">
-    <h1 class="mb-4">Filament Tracker</h1>
+    <h1 class="mb-4">
+        <img src="{{ url_for('static', filename='images/filatrack_logo.svg') }}" class="align-top" width="40">
+        FilaTrack - The Smart Filament Tracker
+    </h1>
 
     <!-- Buttons to open modals -->
     <div class="mb-3">

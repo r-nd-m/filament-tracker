@@ -1,8 +1,12 @@
+import os
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 
-app = Flask(__name__)
+base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+static_folder = os.path.join(base_dir, 'static')
+
+app = Flask(__name__, static_folder=static_folder)
 app.config.from_object("config.Config")
 
 # Disable template caching

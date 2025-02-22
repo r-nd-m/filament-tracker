@@ -1,6 +1,6 @@
-# Filament Tracker
+# ![FilaTrack Logo](./static/images/filatrack_logo_32.png) FilaTrack - The Smart Filament Tracker
 
-Filament Tracker is a **Flask-based Python web app** for managing **3D printing filament usage and print jobs**.
+FilaTrack is a **Flask-based Python web app** for managing **3D printing filament usage and print jobs**.
 It tracks **filament rolls**, logs **print jobs**, and integrates with **PrusaSlicer** to automatically import print data.
 
 ## Features
@@ -43,7 +43,7 @@ The application will run as a Docker container. Access it in your browser at [ht
 
 ## Slicer Integration
 
-Filament Tracker can automatically capture **filament usage and project names** from different slicers using a post-processing script.
+FilaTrack can automatically capture **filament usage and project names** from different slicers using a post-processing script.
 
 ### Supported / Tested Slicers
 * **PrusaSlicer**
@@ -96,13 +96,13 @@ INFO:root:Successfully sent data to Filament Tracker API
 
 #### **4️⃣ Assigning the Unreviewed Print Jobs**
 
-1. Open Filament Tracker (`http://localhost:5000`).
+1. Open FilaTrack (`http://localhost:5000`).
 2. Under **Unreviewed Print Jobs**, find the newly added entry.
 3. Click **Approve**, select the correct filament roll, adjust values if needed, and save the print job.
 
 ## Usage
 
-![Filament Tracker UI](./static/images/UI.png)
+![FilaTrack UI](./static/images/UI.png)
 
 ### Adding a Filament Roll
 
