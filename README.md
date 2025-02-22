@@ -57,7 +57,7 @@ FilaTrack can automatically capture **filament usage and project names** from di
    - **Filament weight (g)**
    - **Project name (from filename or slicer environment variables)**
    - **Slicing timestamp**
-3. The extracted data is sent to Filament Tracker as an **unreviewed print job**, where you can assign a filament roll and finalize it.
+3. The extracted data is sent to FilaTrack as an **unreviewed print job**, where you can assign a filament roll and finalize it.
 
 ### 🔧 Setting Up the Integration
 
