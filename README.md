@@ -1,4 +1,4 @@
-# ![FilaTrack Logo](./static/images/filatrack_logo_32.png) FilaTrack - The Smart Filament Tracker
+# <img src="./static/images/filatrack_logo.svg" class="align-top" width="40"> FilaTrack - The Smart Filament Tracker
 
 FilaTrack is a **Flask-based Python web app** for managing **3D printing filament usage and print jobs**.
 It tracks **filament rolls**, logs **print jobs**, and integrates with **PrusaSlicer** to automatically import print data.
