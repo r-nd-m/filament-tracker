@@ -7,7 +7,7 @@ services:
     environment:
       - DATABASE_URL=sqlite:///data/database.db
     volumes:
-      - ./data:/app/data:rw
+      - /vol/storage/filatrack_data:/app/data:rw
       - type: tmpfs
         target: /tmp
         tmpfs:
